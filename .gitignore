@@ -1,0 +1,23 @@
+ckage Files-- #
+*.jar
+*.war
+*.ear
+
+# --Java-- #
+.class
+
+# --Maven-- # 
+target/
+
+# --Eclipse-- #
+.project
+.metadata
+bin/**
+tmp/**
+tmp/**/*
+*.tmp
+*.bak
+*.swp
+.classpath
+.settings/
+.DS_Store
