@@ -30,10 +30,6 @@
 			<scope>test</scope>
 		</dependency>
 
-		<!-- Json Simple Dependency -->
-		<!-- <dependency> <groupId>com.googlecode.json-simple</groupId> <artifactId>json-simple</artifactId> 
-			</dependency> -->
-
 		<!-- Commons Lang Dependency -->
 		<dependency>
 			<groupId>commons-lang</groupId>
@@ -65,11 +61,6 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-tomcat</artifactId>
 			<scope>provided</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>org.hibernate.validator</groupId>
-			<artifactId>hibernate-validator</artifactId>
 		</dependency>
 
 		<!-- Lombok -->
