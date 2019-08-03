@@ -148,7 +148,7 @@ public class GameControllerTest {
 				get(createGameMoveUrl(gameDetails.getFirst(), player2Id, 1)).contentType(MediaType.APPLICATION_JSON))
 				.andExpect(status().isBadRequest())
 				.andExpect(jsonPath("$.status.message", is("Failed")))
-				.andExpect(jsonPath("$.status.errors[0]", is("Game is already over!")));
+				.andExpect(jsonPath("$.status.errors[0]", is("Exception while adding a game move: Game is already over!")));
 	}
 
 	@After

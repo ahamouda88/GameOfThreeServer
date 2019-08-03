@@ -45,13 +45,6 @@ public class PlayerServiceTest {
 		assertNotNull(player3.getId());
 	}
 
-//	@Test
-//	public void testCreatePlayer_givenInvalidPlayer_throwException() {
-//		// Create invalid player
-//		Player player1 = new Player();
-//		playerService.createOrUpdate(player1);
-//	}
-
 	@Test
 	public void testGetAllPlayers_returnValidList() {
 		List<Player> players = playerService.getAll();
