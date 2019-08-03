@@ -9,7 +9,7 @@ This repository contains the Server side of the game, which contains the busines
 
 ## Technologies Used:
 - Java 8
-- Spring Boot and Spring MVC
+- Spring Boot
 - JPA as the ORM
 - Maven building tool
 - H2 Embedded Database

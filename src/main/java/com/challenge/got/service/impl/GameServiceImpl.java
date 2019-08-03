@@ -61,10 +61,9 @@ public class GameServiceImpl implements GameService<Long, Long> {
 			throw new IllegalArgumentException("Invalid move value, value should be one of the following: -1, 0, 1");
 		}
 
-		GOTGame game = this.getById(gameId);
-		if (game == null) {
-			throw new NotFoundException(String.format("Game with the following id %d doesn't exist", gameId));
-		}
+		GOTGame game = gameDao	.findById(gameId)
+								.orElseThrow(() -> new NotFoundException(
+										String.format("Game with the following id %d doesn't exist", gameId)));
 
 		GameStatus status = game.getGameStatus();
 		if (status.getWinnerPlayer() != null) {
@@ -87,10 +86,10 @@ public class GameServiceImpl implements GameService<Long, Long> {
 			throw new IllegalArgumentException("Neither game Id nor player Id can be null!");
 		}
 
-		GOTGame game = this.getById(gameId);
-		if (game == null) {
-			throw new NotFoundException(String.format("Game with the following id %d doesn't exist", gameId));
-		}
+		GOTGame game = gameDao	.findById(gameId)
+								.orElseThrow(() -> new NotFoundException(
+										String.format("Game with the following id %d doesn't exist", gameId)));
+
 		if (game.getPlayer2() != null) {
 			throw new InvalidGameException(String.format("Game already has two players with the following Ids: %d & %d",
 					game.getPlayer1()
@@ -99,10 +98,9 @@ public class GameServiceImpl implements GameService<Long, Long> {
 						.getId()));
 		}
 		Player player = playerDao	.findById(playerId)
-									.orElse(null);
-		if (player == null) {
-			throw new NotFoundException(String.format("Player with the following id %d doesn't exist", playerId));
-		}
+									.orElseThrow(() -> new NotFoundException(
+											String.format("Player with the following id %d doesn't exist", playerId)));
+
 		if (player.getId() == game	.getPlayer1()
 									.getId()) {
 			throw new InvalidGameException("Player already registered for this game");
