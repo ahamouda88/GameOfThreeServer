@@ -32,7 +32,7 @@ interface MainService<T, E extends Serializable> {
 	 * @return the updated model if updated successfully
 	 */
 	default T createOrUpdate(@Valid T model) {
-		if (model == null) throw new IllegalArgumentException("Failed to create or update model, model shouldnot be null!");
+		if (model == null) throw new IllegalArgumentException("Failed to create or update model, model shouldnot be null");
 		return getRepository().save(model);
 	}
 
@@ -63,7 +63,7 @@ interface MainService<T, E extends Serializable> {
 	 * @return a model if model exists, otherwise it will return <b>null</b>
 	 */
 	default T getById(E modelId) {
-		if (modelId == null) throw new IllegalArgumentException("Unable to find model, model id should not be null!");
+		if (modelId == null) throw new IllegalArgumentException("Unable to find model, model id should not be null");
 		return getRepository()	.findById(modelId)
 								.orElse(null);
 	}

@@ -13,4 +13,5 @@ public interface PathConstants {
 	String GAMES_PATH = "/games";
 	String GAMES_FULL_PATH = MAIN_PATH + GAMES_PATH;
 	String GAMES_PLAYERS_PATH = "/{gameId}" + PLAYERS_PATH + "/{playerId}";
+	String GAMES_PLAYER_JOIN_PATH = "/{gameId}/join";
 }

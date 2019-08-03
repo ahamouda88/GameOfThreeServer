@@ -1,7 +1,7 @@
 package com.challenge.got.service;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 import java.util.List;
 
@@ -16,6 +16,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.challenge.got.application.MainApplication;
+import com.challenge.got.exception.model.InvalidGameException;
 import com.challenge.got.exception.model.NotFoundException;
 import com.challenge.got.factory.GameFactory;
 import com.challenge.got.factory.PlayerFactory;
@@ -46,29 +47,20 @@ public class GameServiceTest {
 	@Before
 	public void testCreateGame_givenValidGame_returnSavedGame() {
 		// Create games
-		GOTGame gameOne = new GOTGame();
 		player1 = PlayerFactory.createPlayer("Player1");
 		player2 = PlayerFactory.createPlayer("Player2");
-		playerService.createOrUpdate(player1);
-		playerService.createOrUpdate(player2);
-		gameOne.setPlayer1(player1);
-		gameOne.setPlayer2(player2);
-		gameOne.setGameStatus(GameFactory.createGameStatus(54, player1));
-		gameOne.setInitialNumber(64);
-		gameService.createOrUpdate(gameOne);
+		GOTGame gameOne = createGame(player1, player2, 54);
 		assertNotNull(gameOne.getId());
+		assertEquals(player1, gameOne	.getGameStatus()
+										.getCurrentPlayer());
 
-		GOTGame gameTwo = new GOTGame();
-		player3 = PlayerFactory.createPlayer("Player1");
-		player4 = PlayerFactory.createPlayer("Player2");
-		playerService.createOrUpdate(player3);
-		playerService.createOrUpdate(player4);
-		gameTwo.setPlayer1(player3);
-		gameTwo.setPlayer2(player4);
-		gameTwo.setGameStatus(GameFactory.createGameStatus(410, player3));
-		gameTwo.setInitialNumber(520);
-		gameService.createOrUpdate(gameTwo);
+		player3 = PlayerFactory.createPlayer("Player3");
+		player4 = PlayerFactory.createPlayer("Player4");
+		GOTGame gameTwo = createGame(player3, player4, 54);
+
 		assertNotNull(gameTwo.getId());
+		assertEquals(player3, gameTwo	.getGameStatus()
+										.getCurrentPlayer());
 	}
 
 	@Test
@@ -123,5 +115,146 @@ public class GameServiceTest {
 	public void testDeleteGame_givenInvalidId_throwException() {
 		// Test removing game with invalid Id
 		gameService.deleteById(999L);
+	}
+
+	@Test
+	public void testCreateGame_givenTwoAutoPlayers_returnGameWithWinnerPlayer() {
+		int initNumber = 4;
+		Player playerOne = PlayerFactory.createPlayer("Player1", true);
+		Player playerTwo = PlayerFactory.createPlayer("Player2", true);
+		GOTGame game = createGame(playerOne, playerTwo, initNumber);
+
+		assertNotNull(game.getId());
+		assertNotNull(game	.getGameStatus()
+							.getWinnerPlayer());
+	}
+
+	@Test
+	public void testCreateGame_givenOneAutoPlayer_alwaysReturnGameWithPlayerTwoTurn() {
+		int initNumber = 40;
+		Player playerOne = PlayerFactory.createPlayer("Player1", true);
+		Player playerTwo = PlayerFactory.createPlayer("Player2");
+
+		GOTGame game = createGame(playerOne, playerTwo, initNumber);
+
+		// Test if it is the second's player turn
+		assertNotNull(game.getId());
+		assertEquals(playerTwo, game.getGameStatus()
+									.getCurrentPlayer());
+
+		// It still should be the second's player turn since the first player is auto
+		GOTGame updatedGame = gameService.addGameMove(game.getId(), playerTwo.getId(), 1);
+		assertNotNull(updatedGame.getId());
+		assertEquals(game.getId(), updatedGame.getId());
+		assertEquals(playerTwo, game.getGameStatus()
+									.getCurrentPlayer());
+	}
+
+	@Test
+	public void testJoinGame_givenValidPlayer_returnGameWithPlayerOneTurn() {
+		int initNumber = 40;
+		Player playerOne = PlayerFactory.createPlayer("Player1");
+
+		// Create a game with one player only
+		GOTGame game = createGame(playerOne, null, initNumber);
+
+		assertNotNull(game.getId());
+		assertNull(game.getPlayer2());
+
+		// Test adding a player to the game
+		Player playerTwo = PlayerFactory.createPlayer("Player2");
+		playerService.createOrUpdate(playerTwo);
+
+		GOTGame updatedGame = gameService.joinGame(game.getId(), playerTwo.getId());
+		assertNotNull(updatedGame.getId());
+		assertEquals(game.getId(), updatedGame.getId());
+		// Player one should have the turn since it is not an auto player
+		assertEquals(playerOne, updatedGame	.getGameStatus()
+											.getCurrentPlayer());
+		assertNotNull(updatedGame.getPlayer2());
+	}
+
+	@Test
+	public void testJoinGame_givenValidPlayerAndAutoFirstPlayer_returnGameWithPlayerTwoTurn() {
+		int initNumber = 40;
+		Player playerOne = PlayerFactory.createPlayer("Player1", true);
+
+		// Create a game with one player only
+		GOTGame game = createGame(playerOne, null, initNumber);
+
+		assertNotNull(game.getId());
+		assertNull(game.getPlayer2());
+
+		// Test adding a player to the game
+		Player playerTwo = PlayerFactory.createPlayer("Player2");
+		playerService.createOrUpdate(playerTwo);
+
+		GOTGame updatedGame = gameService.joinGame(game.getId(), playerTwo.getId());
+		assertNotNull(updatedGame.getId());
+		assertEquals(game.getId(), updatedGame.getId());
+		// Player two should have the turn since player one is an auto player
+		assertEquals(playerTwo, updatedGame	.getGameStatus()
+											.getCurrentPlayer());
+		assertNotNull(updatedGame.getPlayer2());
+	}
+
+	@Test(expected = NotFoundException.class)
+	public void testJoinGame_givenInvalidGame_throwException() {
+		Player playerTwo = PlayerFactory.createPlayer("Player2");
+		playerService.createOrUpdate(playerTwo);
+
+		gameService.joinGame(100L, playerTwo.getId());
+	}
+
+	@Test(expected = NotFoundException.class)
+	public void testJoinGame_givenInvalidPlayer_throwException() {
+		int initNumber = 40;
+		Player playerOne = PlayerFactory.createPlayer("Player1", true);
+
+		GOTGame game = createGame(playerOne, null, initNumber);
+
+		assertNotNull(game.getId());
+		assertNull(game.getPlayer2());
+
+		gameService.joinGame(game.getId(), 100L);
+	}
+
+	@Test(expected = InvalidGameException.class)
+	public void testJoinGame_givenAlreadyRegisteredPlayer_throwException() {
+		int initNumber = 40;
+		Player playerOne = PlayerFactory.createPlayer("Player1", true);
+
+		// Create a game with two players
+		GOTGame game = createGame(playerOne, null, initNumber);
+
+		gameService.joinGame(game.getId(), playerOne.getId());
+	}
+
+	@Test(expected = InvalidGameException.class)
+	public void testJoinGame_givenFullGame_throwException() {
+		int initNumber = 40;
+		Player playerOne = PlayerFactory.createPlayer("Player1", true);
+		Player playerTwo = PlayerFactory.createPlayer("Player2");
+
+		// Create a game with two players
+		GOTGame game = createGame(playerOne, playerTwo, initNumber);
+
+		Player playerThree = PlayerFactory.createPlayer("Player3");
+		playerService.createOrUpdate(playerThree);
+		gameService.joinGame(game.getId(), playerThree.getId());
+	}
+
+	private GOTGame createGame(Player player1, Player player2, int initNumber) {
+		GOTGame game = new GOTGame();
+		playerService.createOrUpdate(player1);
+		game.setPlayer1(player1);
+
+		if (player2 != null) {
+			playerService.createOrUpdate(player2);
+			game.setPlayer2(player2);
+		}
+		game.setGameStatus(GameFactory.createGameStatus(initNumber, player1));
+		game.setInitialNumber(initNumber);
+		return gameService.createOrUpdate(game);
 	}
 }

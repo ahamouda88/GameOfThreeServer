@@ -41,7 +41,7 @@ public interface GameFactory {
 	 */
 	static GameStatus createGameStatus(Integer currentNumber, Player currentPlayer, Player winnerPlayer) {
 		if (currentNumber == null) {
-			throw new IllegalArgumentException("Current number should not be null!");
+			throw new IllegalArgumentException("Current number should not be null");
 		}
 
 		GameStatus status = new GameStatus();
@@ -98,7 +98,7 @@ public interface GameFactory {
 	static GOTGame createGame(GameStatus gameStatus, Integer initNumber, Player player1, Player player2,
 			List<GameMove> gameMoves) {
 		if (gameStatus == null || initNumber == null || player1 == null) {
-			throw new IllegalArgumentException("Game Status, Initial Number, and First player should not be null!");
+			throw new IllegalArgumentException("Game Status, Initial Number, and First player should not be null");
 		}
 
 		GOTGame game = new GOTGame();
@@ -122,7 +122,7 @@ public interface GameFactory {
 	 */
 	static GameMove createGameMove(Integer result, ValueAdded valueAdded) {
 		if (result == null || valueAdded == null)
-			throw new IllegalArgumentException("Neither value added nor number should be null!");
+			throw new IllegalArgumentException("Neither value added nor number can be null");
 
 		GameMove move = new GameMove();
 		move.setResult(result);

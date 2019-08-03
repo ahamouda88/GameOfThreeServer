@@ -1,5 +1,5 @@
 # Game Of Three
-#### Introduction to the game:
+### Introduction to the game:
 When a player starts, it incepts a random (whole) number and sends it to the second player as an approach of starting the game. 
 The receiving player can now always choose between adding one of {­1, 0, 1} to get to a number that is divisible by 3. Divide it by three. 
 
@@ -19,8 +19,8 @@ This repository contains the Server side of the game, which contains the busines
 - Clone the repository
 - Build the application using the following command on the root project: mvn clean install
 - Two ways for running the application:
-	1. A jar file will be create at './target' folder, copy the file and deploy it to a web server
-	2. Simply you can either run the application by executing '/src/main/java/com/callenge/got/config/MainApplication.java' or use the following command: mvn spring-boot:run
+	1. A jar file will be create at `./target` folder, copy the file and deploy it to a web server
+	2. Simply you can either run the application by executing `/src/main/java/com/callenge/got/config/MainApplication.java` or use the following command: mvn spring-boot:run
 - From your localhost (http://localhost:8080) you can starting using the API using the below endpoints.
 
 ## RESTful Web Service

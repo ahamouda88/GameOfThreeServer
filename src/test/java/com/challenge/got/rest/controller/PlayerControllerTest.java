@@ -45,7 +45,7 @@ public class PlayerControllerTest {
 	private PlayerController playerController;
 
 	@Before
-	public void testCreate() throws Exception {
+	public void testCreatePlayer_givenValidInput_returnCreatedPlayer() throws Exception {
 		MockitoAnnotations.initMocks(this);
 
 		mapper = new ObjectMapper();
@@ -58,7 +58,7 @@ public class PlayerControllerTest {
 	}
 
 	@Test
-	public void testRemoveAndGet() throws Exception {
+	public void testRemoveAndGetPlayer_givenValidData_returnValidResponses() throws Exception {
 		/** Test get method with valid Id **/
 		mockMvc	.perform(get(END_POINT + "/1"))
 				.andExpect(status().isOk())

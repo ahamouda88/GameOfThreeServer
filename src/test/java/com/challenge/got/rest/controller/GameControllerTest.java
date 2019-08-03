@@ -2,6 +2,7 @@ package com.challenge.got.rest.controller;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -60,7 +61,7 @@ public class GameControllerTest {
 	private PlayerController playerController;
 
 	@Before
-	public void testCreateGame_givenValidInput_returnCreatedGame() throws Exception {
+	public void setup() throws Exception {
 		MockitoAnnotations.initMocks(this);
 
 		mockMvc = MockMvcBuilders	.standaloneSetup(gameController, playerController)
@@ -68,7 +69,7 @@ public class GameControllerTest {
 	}
 
 	@Test
-	public void testRemoveAndGetGame_givenValidData_returnValidResponses() throws Exception {
+	public void testCreateRemoveAndGetGame_givenValidData_returnValidResponses() throws Exception {
 		Pair<Integer, Pair<Integer, Integer>> gameDetails1 = testCreateGameAndReturnDetails("Ahmed", "Messi", 120, 430);
 		Pair<Integer, Pair<Integer, Integer>> gameDetails2 = testCreateGameAndReturnDetails("Omar", "Ibrahim", 20, 50);
 
@@ -148,7 +149,24 @@ public class GameControllerTest {
 				get(createGameMoveUrl(gameDetails.getFirst(), player2Id, 1)).contentType(MediaType.APPLICATION_JSON))
 				.andExpect(status().isBadRequest())
 				.andExpect(jsonPath("$.status.message", is("Failed")))
-				.andExpect(jsonPath("$.status.errors[0]", is("Exception while adding a game move: Game is already over!")));
+				.andExpect(
+						jsonPath("$.status.errors[0]", is("Exception while adding a game move: Game is already over")));
+	}
+
+	@Test
+	public void testJoiningGame_givenValidPlayer_returnUpdatedGame() throws Exception {
+		Pair<Integer, Pair<Integer, Integer>> gameDetails = testCreateGameAndReturnDetails("Jenna", null, 54, 12);
+		Player newPlayer = createPlayer("Mikel");
+
+		/** Test adding a new player to the game **/
+		mockMvc	.perform(get(createJoinGameUrl(gameDetails.getFirst(), newPlayer.getId()
+																				.intValue())).contentType(
+																						MediaType.APPLICATION_JSON))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.status.message", is("Success")))
+				.andExpect(jsonPath("$.data.player2.id", is(newPlayer	.getId()
+																		.intValue())))
+				.andExpect(jsonPath("$.data.player2.name", is(newPlayer.getName())));
 	}
 
 	@After
@@ -158,44 +176,49 @@ public class GameControllerTest {
 				.andExpect(jsonPath("$.status.message", is("Success")));
 	}
 
+	/*
+	 * Helper methods
+	 */
 	private Pair<Integer, Pair<Integer, Integer>> testCreateGameAndReturnDetails(String player1Name, String player2Name,
 			int currentNumber, int initNumber) throws Exception {
-		Player player1 = PlayerFactory.createPlayer(player1Name);
-		Player player2 = PlayerFactory.createPlayer(player2Name);
+		Player player1 = createPlayer(player1Name);
+		Player player2 = createPlayer(player2Name);
+
 		GameStatus status = GameFactory.createGameStatus(currentNumber, player1);
 		GOTGame game = GameFactory.createGame(status, initNumber, player1, player2, new ArrayList<>());
-
-		MvcResult player1Result = mockMvc	.perform(
-				post(PLAYERS_END_POINT, player1).contentType(MediaType.APPLICATION_JSON)
-												.content(mapper.writeValueAsString(player1)))
-											.andExpect(status().isCreated())
-											.andExpect(jsonPath("$.status.message", is("Success")))
-											.andReturn();
-
-		MvcResult player2Result = mockMvc	.perform(
-				post(PLAYERS_END_POINT, player2).contentType(MediaType.APPLICATION_JSON)
-												.content(mapper.writeValueAsString(player2)))
-											.andExpect(status().isCreated())
-											.andExpect(jsonPath("$.status.message", is("Success")))
-											.andReturn();
-
-		int player1Id = getIdFromData(player1Result);
-		int player2Id = getIdFromData(player2Result);
-		player1.setId(Integer.toUnsignedLong(player1Id));
-		player2.setId(Integer.toUnsignedLong(player2Id));
-
 		MvcResult gameResult = mockMvc	.perform(post(GAMES_END_POINT, game).contentType(MediaType.APPLICATION_JSON)
 																			.content(mapper.writeValueAsString(game)))
 										.andExpect(status().isCreated())
 										.andExpect(jsonPath("$.status.message", is("Success")))
 										.andExpect(jsonPath("$.data.player1.name", is(player1Name)))
-										.andExpect(jsonPath("$.data.player2.name", is(player2Name)))
+										.andExpect(player2 != null ? jsonPath("$.data.player2.name", is(player2Name))
+												: jsonPath("$.data.player2", nullValue()))
 										.andExpect(jsonPath("$.data.id", notNullValue()))
 										.andReturn();
 		int gameId = getIdFromData(gameResult);
+		int player1Id = player1	.getId()
+								.intValue();
+		int player2Id = player2 == null ? -1
+				: player2	.getId()
+							.intValue();
 		Pair<Integer, Integer> players = Pair.of(player1Id, player2Id);
 		Pair<Integer, Pair<Integer, Integer>> gamePlayersPair = Pair.of(gameId, players);
 		return gamePlayersPair;
+	}
+
+	private Player createPlayer(String playerName) throws Exception {
+		if (playerName == null) return null;
+
+		Player player = PlayerFactory.createPlayer(playerName);
+		MvcResult player2Result = mockMvc	.perform(
+				post(PLAYERS_END_POINT, player)	.contentType(MediaType.APPLICATION_JSON)
+												.content(mapper.writeValueAsString(player)))
+											.andExpect(status().isCreated())
+											.andExpect(jsonPath("$.status.message", is("Success")))
+											.andReturn();
+		int playerId = getIdFromData(player2Result);
+		player.setId(Integer.toUnsignedLong(playerId));
+		return player;
 	}
 
 	private String createGameMoveUrl(int gameId, int playerId, int move) {
@@ -204,6 +227,15 @@ public class GameControllerTest {
 		sections.add(String.valueOf(gameId));
 		sections.add(PathConstants.PLAYERS_PATH);
 		sections.add(playerId + "?add=" + move);
+
+		return StringUtils.join(sections, "/");
+	}
+
+	private String createJoinGameUrl(int gameId, int playerId) {
+		List<String> sections = new ArrayList<>();
+		sections.add(GAMES_END_POINT);
+		sections.add(String.valueOf(gameId));
+		sections.add("join?playerid=" + playerId);
 
 		return StringUtils.join(sections, "/");
 	}

@@ -34,14 +34,19 @@ public class GOTGame implements Serializable {
 	@NotNull
 	private Integer initialNumber;
 	@NotNull
-	@OneToOne(cascade = { CascadeType.ALL })
+	@OneToOne(cascade = CascadeType.ALL)
 	private GameStatus gameStatus;
 	@NotNull
 	@OneToOne
 	private Player player1;
 	@OneToOne
 	private Player player2;
-	@OneToMany(cascade = { CascadeType.ALL }, fetch = FetchType.EAGER)
+	/*
+	 * HUGE NOTE: this can cause out of memory issues if it get so huge and we are
+	 * requesting it from the API Alternative we don't return it as part of the
+	 * game, and maybe have a separate API to get the Moves and apply pagination
+	 */
+	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
 	private List<GameMove> gameMoves = new ArrayList<>();
 
 	public synchronized boolean addMove(GameMove move) {

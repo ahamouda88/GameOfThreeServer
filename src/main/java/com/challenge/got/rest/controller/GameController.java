@@ -19,7 +19,8 @@ import com.challenge.got.rest.response.BaseResponse;
 import com.challenge.got.service.api.GameService;
 
 /**
- * This class is a Rest Controller for handling the game actions, and handling the game end-points
+ * This class is a Rest Controller for handling the game actions, and handling
+ * the game end-points
  */
 @RestController
 @RequestMapping(value = PathConstants.GAMES_FULL_PATH)
@@ -57,6 +58,23 @@ public class GameController implements ControllerCommonMethods {
 		return createBaseResponse(HttpStatus.OK, HttpStatus.BAD_REQUEST, errors, game);
 	}
 
+	@RequestMapping(method = RequestMethod.GET, value = PathConstants.GAMES_PLAYER_JOIN_PATH)
+	public ResponseEntity<BaseResponse<GOTGame>> joinGame(@PathVariable(name = "gameId") Long gameId,
+			@RequestParam(name = "playerid") Long playerId) {
+		List<String> errors = new LinkedList<>();
+		GOTGame game;
+		try {
+			game = gameService.joinGame(gameId, playerId);
+			if (game.getId() == null) {
+				errors.add(String.format("Failed to add player with id: %s to the game with id: %s", playerId, gameId));
+			}
+		} catch (Exception ex) {
+			errors.add(String.format("Exception while adding a player to a game: %s", ex.getMessage()));
+			game = null;
+		}
+		return createBaseResponse(HttpStatus.OK, HttpStatus.BAD_REQUEST, errors, game);
+	}
+
 	@RequestMapping(method = RequestMethod.PUT)
 	public ResponseEntity<BaseResponse<GOTGame>> updateGame(@RequestBody GOTGame game) {
 		List<String> errors = new LinkedList<>();
@@ -75,7 +93,7 @@ public class GameController implements ControllerCommonMethods {
 	public ResponseEntity<BaseResponse<GOTGame>> deleteGame(@PathVariable(name = "id") Long gameId) {
 		List<String> errors = new LinkedList<>();
 		try {
-			 gameService.deleteById(gameId);
+			gameService.deleteById(gameId);
 		} catch (Exception ex) {
 			errors.add(String.format("Exception while deleting a game: %s", ex.getMessage()));
 		}
