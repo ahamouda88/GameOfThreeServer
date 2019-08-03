@@ -39,4 +39,5 @@ This repository contains the Server side of the game, which contains the busines
 | /api/v1/got/games                        	 | Adds a new game, given a game JSON object as the request body	  	  |    POST     |
 | /api/v1/got/games/{id}                   	 | Deletes a game, given a game's Id                            	  	  |    DELETE   |
 | /api/v1/got/games/{id}                  	 	 | Returns a game, given a game's id       					  		  	  |     GET     |
+| /api/v1/got/games/{gameId}/join?playerid={playerId}  | Register a player to a game, given the game & player's ids |     GET     |
 | /api/v1/got/games/{gameId}/players/{playerId}?add={value}    | Add a value and calculates the result for a given player  	  	  |     GET     |
